@@ -42,11 +42,23 @@ def insert(title, author, year, isbn):
 def search(title="", author="", year="", isbn=""):
     conn = sqlite3.connect("book.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM book WHERE title=? OR author=? OR year=? OR isbn=?", (title, author, year, isbn))
+
+    if len(title) != 0 and len(author) == 0:  # author empty
+        title = "%" + title + "%"
+        cursor.execute("SELECT * FROM book WHERE title LIKE ? OR year=? OR isbn=?", (title, year, isbn))
+    elif len(title) == 0 and len(author) != 0:  # title empty
+        author = "%" + author + "%"
+        cursor.execute("SELECT * FROM book WHERE author LIKE ? OR year=? OR isbn=?", (author, year, isbn))
+    elif len(title) != 0 and len(author) != 0:
+        title = "%" + title + "%"
+        author = "%" + author + "%"
+        cursor.execute("SELECT * FROM book WHERE title LIKE ? OR author LIKE ? OR year=? OR isbn=?", (title, author, year, isbn))
+    else:  # title and author empty
+        cursor.execute("SELECT * FROM book WHERE year=? OR isbn=?", (year, isbn))
     rows = cursor.fetchall()
     conn.close()
     if len(rows) == 0:
-        print("No book is found!")
+        return 0
     else:
         return rows
 
@@ -69,7 +81,6 @@ def update(id, newTitle, newAuthor, newYear, newISBN):
 
 connect()
 
-# insert("One Last Hope", "Anne Hardy", 2018, 4836746592)
-# insert("Survive", "Arthur Smith", 2000, 1479284948)
-print(delete(3))
-print(view())
+# print(type(search("", "", "2002", "")))
+# result = search("", "", "2007", "")
+# print(result)
